@@ -35,15 +35,20 @@ int mat_mat_product_lapack(int m, int n, int k, double *A, double *B,
 int mat_mat_product(int m, int n, int k, double *A, double *B,
 		    double *C){
   int nt, i1, i2, i3;
+  int tnum = 8;
+  omp_set_num_threads(tnum);
+  #pragma omp parallel
   nt = omp_get_num_threads();
   printf("Run with %d threads\n",nt);
   /* loop to perform:   C(i,j) = sum_t A(i,t) * B(t,j)
    * Outer loop i1: rows of A
    */
   /*-------------------- set all of C to zero first*/
+  #pragma omp parallel for
   for( i1 = 0 ; i1 < m*n ; i1 ++)
     C[i1] = 0.0;
   /*--------------------row i1 of C == lin comb. of rows of B*/
+  #pragma omp parallel for
   for( i1 = 0 ; i1 < m ; i1 ++)	  {
     /* Mid loop i2, rows of B */
     for( i2 = 0 ; i2 < k ; i2 ++) {

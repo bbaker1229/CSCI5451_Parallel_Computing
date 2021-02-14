@@ -36,6 +36,7 @@ int mat_mat_product(int m, int n, int k, double *A, double *B,
 		    double *C){
   int nt, i1, i2, i3;
   int tnum = 32;
+  double tmp = 0.0;
   omp_set_num_threads(tnum);
   #pragma omp parallel
   nt = omp_get_num_threads();
@@ -48,14 +49,16 @@ int mat_mat_product(int m, int n, int k, double *A, double *B,
   for( i1 = 0 ; i1 < m*n ; i1 ++)
     C[i1] = 0.0;
   /*--------------------row i1 of C == lin comb. of rows of B*/
-  #pragma omp parallel for
+  #pragma omp parallel for shared(A, B, C, n, m, k) reduction(+:tmp)
   for( i1 = 0 ; i1 < m ; i1 ++)	  {
     /* Mid loop i2, rows of B */
-    #pragma omp parallel for
-    for( i2 = 0 ; i2 < k ; i2 ++) {
+    //#pragma omp parallel for
+    for( i3 = 0 ; i3 < n ; i3 ++) {
+      tmp = 0.0;
       /*-------------------- Inner loop, linear comb of rows  of B */
-      for( i3 = 0 ; i3 < n ; i3 ++ )
-	C[i3+i1*n] += A[i2+i1*k]*B[i3+i2*n];
+      for( i2 = 0 ; i2 < k ; i2 ++ )
+	tmp += A[i2+i1*k]*B[i3+i2*n];
+      C[i3+i1*n] = tmp;
     }
   }
   return 0;

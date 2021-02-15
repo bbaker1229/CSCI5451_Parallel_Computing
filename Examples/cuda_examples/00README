@@ -1,0 +1,5 @@
+
+
+module load soft/cuda
+nvcc hello.cu
+./a.out

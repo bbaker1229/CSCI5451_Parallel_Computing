@@ -63,14 +63,15 @@ int main(int argc, char *argv[]) {
       t1[iter] = wctime();
       saxpy_par<<<dimGrid, dimBlock>>>(vecLen, a, xg, yg);
       t1[iter] = (wctime() - t1[iter])*1.e+06;
-      cudaMemcpy(z, yg, vecLen*sizeof(float), cudaMemcpyDeviceToHost);
+      //cudaMemcpy(z, yg, vecLen*sizeof(float), cudaMemcpyDeviceToHost);
       //valresult = saxpy_check(vecLen, a, x, y, z);
     }
+    cudaMemcpy(z, yg, vecLen*sizeof(float), cudaMemcpyDeviceToHost);
     valresult = saxpy_check(vecLen, a * NITER, x, y, z);
     for(i=0; i<NITER; i++) {
       avgt += t1[i];
     }
-    avgt /= NITER;
+    avgt /= (float) NITER;
     nops = (float) vecLen * 2;
     printf("** vecLen = %7.0lu, Mflops = %10.2lf  err = %2.2e\n", vecLen, nops/avgt, valresult);
     cudaFree(xg);

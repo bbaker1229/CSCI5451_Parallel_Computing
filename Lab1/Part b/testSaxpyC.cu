@@ -37,7 +37,8 @@ int main(int argc, char *argv[]) {
   unsigned long int i;
   float a, value, valresult, nops;
   float *x, *y, *z, *xg, *yg;
-  double t1;
+  double t1[NITER];
+  double avgt;
   a = 1.0;
   //a = a / (float) NITER;
   x = (float*) malloc(n*sizeof(float));
@@ -58,18 +59,23 @@ int main(int argc, char *argv[]) {
     //cudaMemcpy(yg, y, vecLen*sizeof(float), cudaMemcpyHostToDevice);
     dim3 dimGrid(1024 * 8);
     dim3 dimBlock(1024);
-    t1 = wctime();
+    //t1 = wctime();
     for(int iter=0; iter<NITER; iter++){
+      t1[iter] = wctime();
       cudaMemcpy(xg, x, vecLen*sizeof(float), cudaMemcpyHostToDevice);
       cudaMemcpy(yg, y, vecLen*sizeof(float), cudaMemcpyHostToDevice);
       saxpy_par<<<dimGrid, dimBlock>>>(vecLen, a, xg, yg);
       cudaMemcpy(z, yg, vecLen*sizeof(float), cudaMemcpyDeviceToHost);
+      t1[iter] = (wctime() - t1[iter])*1.e+06;
       //valresult = saxpy_check(vecLen, a, x, y, z);
     }
-    t1 = (wctime() - t1)*1.e+06;
+    //t1 = (wctime() - t1)*1.e+06;
+    for(i=0; i<NITER; i++)
+      avgt += t1[i];
+    avgt /= (float) NITER;
     valresult = saxpy_check(vecLen, a, x, y, z);
     nops = (float) vecLen * 2;
-    printf("** vecLen = %7.0lu, Mflops = %10.2lf  err = %2.2e\n", vecLen, nops/t1, valresult);
+    printf("** vecLen = %7.0lu, Mflops = %10.2lf  err = %2.2e\n", vecLen, nops/avgt, valresult);
     cudaFree(xg);
     cudaFree(yg);
   }

@@ -35,8 +35,7 @@ int mat_mat_product_lapack(int m, int n, int k, double *A, double *B,
 int mat_mat_product(int m, int n, int k, double *A, double *B,
 		    double *C){
   int nt, i1, i2, i3;
-  //int tnum = 32;
-  //omp_set_num_threads(tnum);
+  // Added this directive so the next line would read the correct number.
   #pragma omp parallel
   nt = omp_get_num_threads();
   printf("Run with %d threads\n",nt);
@@ -44,10 +43,12 @@ int mat_mat_product(int m, int n, int k, double *A, double *B,
    * Outer loop i1: rows of A
    */
   /*-------------------- set all of C to zero first*/
+  // Added to parallelize this initialization loop
   #pragma omp parallel for
   for( i1 = 0 ; i1 < m*n ; i1 ++)
     C[i1] = 0.0;
   /*--------------------row i1 of C == lin comb. of rows of B*/
+  // Added to parallelize this major for loop
   #pragma omp parallel for
   for( i1 = 0 ; i1 < m ; i1 ++)	  {
     /* Mid loop i2, rows of B */

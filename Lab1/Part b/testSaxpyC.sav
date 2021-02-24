@@ -1,0 +1,14 @@
+Running with computations and data transfer:
+** vecLen =    2048, Mflops =      44.97  err = 0.00e+00
+** vecLen =    4096, Mflops =      83.54  err = 0.00e+00
+** vecLen =    8192, Mflops =     150.25  err = 0.00e+00
+** vecLen =   16384, Mflops =     241.54  err = 0.00e+00
+** vecLen =   32768, Mflops =     344.28  err = 0.00e+00
+** vecLen =   65536, Mflops =     430.81  err = 0.00e+00
+** vecLen =  131072, Mflops =     503.71  err = 0.00e+00
+** vecLen =  262144, Mflops =     551.44  err = 0.00e+00
+** vecLen =  524288, Mflops =     662.60  err = 0.00e+00
+** vecLen = 1048576, Mflops =     738.84  err = 0.00e+00
+** vecLen = 2097152, Mflops =     776.25  err = 0.00e+00
+** vecLen = 4194304, Mflops =     784.32  err = 0.00e+00
+** vecLen = 8388608, Mflops =     787.46  err = 0.00e+00

@@ -6,8 +6,9 @@
 
 #define BSIZE  16
 #define NN 4000;
+#define MM 6000;
 
-void MatAdd(int N, float *A, float *B, float *C) {
+void MatAdd(int N, int M, float *A, float *B, float *C) {
 #pragma acc kernels copyin(A[0:N*N+N-1],B[0:N*N+N-1]), copyout(C[0:N*N+N-1])
 	for(int i=0; i<N; i++) {
 	  for(int j=0; j<N; j++) {
@@ -34,17 +35,18 @@ void MatAdd(int N, float *A, float *B, float *C) {
 int main() {
 float *Ad, *Bd, *Cd; 
 float  *A,  *B,  *C; 
-int N, i, j; 
+int N, M, i, j; 
 size_t MatSize;
 float s;
 //-------------------- set dimension N
  N = NN;
+ M = MM;
 
  char LineG[] = "Error allocating GPU  memory";
  char LineH[] = "Error allocating Host memory";
 
   
- MatSize = N*N*sizeof(float);
+ MatSize = N*M*sizeof(float);
 //-------------------- allocate on cpu
  A = (float *)malloc(MatSize);        
  B = (float *)malloc(MatSize);        
@@ -53,17 +55,17 @@ float s;
           err_exit(LineH);
 //-------------------- fill arrays A,B
 
- for (i=0; i<N; i++) 
+ for (i=0; i<M; i++) 
     for (j=0; j<N; j++) {
       A[i*N+j] = (float) rand() / (float) rand();
       B[i*N+j] = (float) rand() / (float) rand();
 } 
 
-   MatAdd(N, A, B, C);
+   MatAdd(N, M, A, B, C);
 //-------------------- check whether addition was correct
-s =  mat_add_check(N*N,A,B,C);
+s =  mat_add_check(N*M,A,B,C);
  
-printf(" Mat dim = %d -- err= %10.6e\n",N,s); 
+printf(" Mat dims M = %d N = %d -- err= %10.6e\n",M,N,s); 
 //-------------------- Free Host arrays
  free(A); 
  free(B);

@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
     for(int iter=0; iter<NITER; iter++){
       t1[iter] = wctime();
       saxpy_par<<<dimGrid, dimBlock>>>(vecLen, a, xg, yg);
+      cudaDeviceSynchronize();
       t1[iter] = (wctime() - t1[iter])*1.e+06;
     }
     // Copy result from GPU to CPU.

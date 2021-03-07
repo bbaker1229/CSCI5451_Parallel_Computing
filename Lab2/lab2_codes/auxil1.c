@@ -188,6 +188,11 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
         counter[j]++;
     }
   }
+  for (j=0; j<Nc; j++) {
+    local_cnt = counter[j];
+    MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
+    counter[j] = global_cnt;
+  }
   /*for (i=0; i<Nc; i++) {
     printf("[ ");
     for (j=0; j<nfeat; j++) {

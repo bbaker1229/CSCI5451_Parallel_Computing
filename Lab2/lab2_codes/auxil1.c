@@ -146,39 +146,25 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
   local_cnt = Nc;
   /*-------------------- Phase 0: initialization*/
   MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
-  //printf("Full dataset is %d, but I only have %d. ", global_cnt, local_cnt);
   for (j=0; j<Nc; j++) {
     get_rand_ftr(ctr[j], fdata, m, nfeat); 
   }
   for (j=0; j<nfeat; j++) {
-    //local_sum = 0.0;
     for (i=0; i<Nc; i++) {
       local_sum = ctr[i][j];
       MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
       ctr[i][j] = (float) (global_sum / (double)global_cnt);
     }
-    //MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
-    //for (i=0; i<Nc; i++) {
-    //  ctr[i][j] = (float) (global_sum / (double)global_cnt);
-    //}
-    //if (j == 0)
-    //  printf("feature %d sum is %lf, I have %lf, avg0 is %f, avgNc is %f.",j, global_sum, local_sum, ctr[0][j], ctr[Nc-1][j]);
   }
   //printf("Phase 0 complete.");
+  MPI_Barrier(comm);
   /*--------------------- Phase 1: get cluster ids*/
   while(total_cnt < maxits) {
   for (i=0; i<m; i++) {
     for (j=0; j<Nc; j++) {
       dists[j] = dist2(ctr[j], &fdata[i], nfeat);
-      //printf("dists is %f", dists[j]);
     }
-    /*printf("[ ");
-    for (j=0; j<Nc; j++) {
-      printf("%f ", dists[j]);
-    }
-    printf("]\n");*/
     clustId[i] = assign_ctrs(dists, Nc);
-    //printf("cluster value is %d", clustId[i]);
   }
   for (j=0; j<Nc; j++)
     counter[j] = 0.0;
@@ -193,19 +179,12 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
     MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
     counter[j] = global_cnt;
   }
-  /*for (i=0; i<Nc; i++) {
-    printf("[ ");
-    for (j=0; j<nfeat; j++) {
-      printf("%0.2f ", ctr[i][j]);
-    }
-    printf("]\n");
-  }*/
   //printf("Phase 1 complete.");
+  MPI_Barrier(comm);
   /*---------------------Phase 2: reset centoids*/
   for (j=0; j<Nc; j++) {
     local_cnt = counter[j];
     MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
-    //local_sum = 0.0;
     for (i=0; i<nfeat; i++) {
       local_sum = 0.0;
       for (k=0; k<m; k++) {
@@ -224,21 +203,10 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
       ctr[j][i] = (float) (global_sum / (double)global_cnt);
     }
   }
+  MPI_Barrier(comm);
   //printf("Phase 2 complete.");
-  /*for (i=0; i<Nc; i++) {
-    printf("[ ");
-    for (j=0; j<nfeat; j++) {
-      printf("%0.2f ",ctr[i][j]);
-    }
-    printf("]\n");
-  }
-  printf("Next\n");*/
   total_cnt++;
   }
-  //for (j=0; j<m; j++)
-  //  clustId[j] = 0;
-  //for (j=0; j<Nc; j++)
-  //  counter[j] = 0;
   return(0);
 }
 

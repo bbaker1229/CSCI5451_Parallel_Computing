@@ -1,1 +1,1 @@
-mpirun -np 8 -hostfile hostfile main.ex
+mpirun -np 4 -hostfile hostfile main.ex

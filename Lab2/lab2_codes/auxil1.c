@@ -146,6 +146,7 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
   local_cnt = Nc;
   /*-------------------- Phase 0: initialization*/
   MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
+  //MPI_Barrier(comm);
   for (j=0; j<Nc; j++) {
     get_rand_ftr(ctr[j], fdata, m, nfeat); 
   }
@@ -153,11 +154,12 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
     for (i=0; i<Nc; i++) {
       local_sum = ctr[i][j];
       MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
+      MPI_Barrier(comm);
       ctr[i][j] = (float) (global_sum / (double)global_cnt);
     }
   }
   //printf("Phase 0 complete.");
-  MPI_Barrier(comm);
+  //MPI_Barrier(comm);
   /*--------------------- Phase 1: get cluster ids*/
   while(total_cnt < maxits) {
   for (i=0; i<m; i++) {
@@ -177,14 +179,15 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
   for (j=0; j<Nc; j++) {
     local_cnt = counter[j];
     MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
+    MPI_Barrier(comm);
     counter[j] = global_cnt;
   }
   //printf("Phase 1 complete.");
-  MPI_Barrier(comm);
+  //MPI_Barrier(comm);
   /*---------------------Phase 2: reset centoids*/
   for (j=0; j<Nc; j++) {
-    local_cnt = counter[j];
-    MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
+    //local_cnt = counter[j];
+    //MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
     for (i=0; i<nfeat; i++) {
       local_sum = 0.0;
       for (k=0; k<m; k++) {
@@ -193,17 +196,34 @@ int MyKmeans_p(float *fdata, int *clustId, int *counter, int *params,
 	}
       }
       MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
-      if (global_cnt == 0) {
+      MPI_Barrier(comm);
+      /*if (counter[j] == 0) {
         get_rand_ftr(ctr[j], fdata, m, nfeat);
 	local_sum = ctr[j][i];
 	MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
 	local_cnt = Nc;
 	MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
-      }
-      ctr[j][i] = (float) (global_sum / (double)global_cnt);
+      }*/
+      if (counter[j] != 0)
+        ctr[j][i] = (float) (global_sum / (double)counter[j]);
     }
   }
-  MPI_Barrier(comm);
+  //MPI_Barrier(comm);
+  for (j=0; j<Nc; j++) {
+    if (counter[j] == 0) {
+      get_rand_ftr(ctr[j], fdata, m, nfeat);
+      for (i=0; i<nfeat; i++) {
+        local_sum = ctr[j][i];
+	MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
+	//MPI_Barrier(comm);
+	local_cnt = Nc;
+	MPI_Allreduce(&local_cnt, &global_cnt, 1, MPI_INT, MPI_SUM, comm);
+	MPI_Barrier(comm);
+	ctr[j][i] = (float) (global_sum / (double)global_cnt);
+      }
+    }
+  }
+  //MPI_Barrier(comm);
   //printf("Phase 2 complete.");
   total_cnt++;
   }

@@ -12,7 +12,7 @@ FILES2 = main_Stats.o auxil1.o
 all: main.ex main_Stats.ex
 
 main_Stats.ex: $(FILES2)
-	${CC} ${CFLAGS} -o main_Stats.ex -lm $(FILES2) $(LIBS)
+	${CC} ${CFLAGS} -o main_Stats.ex $(FILES2) -lm $(LIBS)
 
 main.ex: $(FILES) 
 	${CC} ${CFLAGS} -o main.ex -lm $(FILES) $(LIBS)

@@ -18,25 +18,29 @@ int main(int argc, char *argv[]){
   int Nc = 5; 
   float *fdata;
   int nloc, len, itmax=20;
-  int i, j, ierr, nfeat = 0, nitems=0;
+  int i, j, ierr, nfeat = 0, nitems=0, thisTime;
   char outfile[24], proc_name[40];
   FILE *fout;
-  double t1;
+  double t1, timeit[5], meanTime, sigmaTime;
   MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myid);
   /*-------------------- file for reading data */
   //char file_name[] = "smaller.csv";
-  char file_name[] = "/export/scratch/users/csci5451/pollution_Vsmall.csv";   
+  char file_name[] = "/export/scratch/users/csci5451/pollution_small.csv";   
   int params[4];              // for passing a few parameters
   float tol = 1.e-10;         // stopping criterion
   int nmax = NSAMPLES;        // max number of samples to read
   int counter[NCLUST];        // counter for size of each cluster
   /*-------------------- START --------------------*/
+  thisTime = 0;
+  while (thisTime < 5) {
   if (myid == 0) {
     fdata = (float *) malloc(nmax*NFEAT*sizeof(float));
     if (fdata == NULL)      exit(1);
     ierr=read_csv_matrix(fdata,file_name,&nitems, &nfeat);
+    ierr = 0;
+    ierr = ierr;
     //printf(" ierr %d\n",ierr);
     // get norm of fdata to define tol
     params[0] = nitems;
@@ -74,8 +78,9 @@ int main(int argc, char *argv[]){
   MyKmeans_p(fdata, map2clust, counter, params, tol,MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   t1 = MPI_Wtime() - t1;
-  if (myid == 0)
-    printf("%lf\n",t1);
+  timeit[thisTime] = t1;
+  //if (myid == 0)
+  //  printf("%lf\n",t1);
 
   sprintf(outfile, "OUT/FinalOutId%d",myid);
   //printf(" myid %d my filename %s\n",myid,outfile);
@@ -105,6 +110,22 @@ int main(int argc, char *argv[]){
     fprintf(fout," \n ");
   }
   fclose(fout);
+  thisTime++;
+  }
+  if (myid == 0){
+    t1 = 0.0;
+    for (i=0; i<thisTime; i++){
+      t1 += timeit[i];
+    }
+    meanTime = t1 / ((double)thisTime);
+    t1 = 0.0;
+    for (i=0; i<thisTime; i++){
+      t1 += ((timeit[i] - meanTime) * (timeit[i] - meanTime));
+    }
+    t1 /= ((double)(thisTime - 1));
+    sigmaTime = sqrt(t1);
+    printf("Mean: %lf Sigma: %lf\n", meanTime, sigmaTime);
+  }
   MPI_Finalize();
   return(0); 
 }

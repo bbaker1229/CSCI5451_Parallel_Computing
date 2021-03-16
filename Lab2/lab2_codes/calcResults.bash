@@ -31,3 +31,15 @@ for i in 2 4 8 16 32
 do
   echo -n "32 ${i} " >> results.txt; mpirun -np ${i} -hostfile hostfile32 main_Stats.ex | awk '{print $2 " " $4}' >> results.txt
 done
+
+echo "NODES PPR MEAN SIGMA" > ppr_results.txt
+
+for i in 1 2 3 4
+do
+for j in 2 4 8 16
+do
+  let "val = ${i} * ${j}"
+  echo -n "${i} ${j} " >> ppr_results.txt; mpirun -np $val -hostfile hostfile64 -map-by ppr:${j}:node main_Stats.ex | awk '{print $2 " " $4}' >> ppr_results.txt
+done
+done
+

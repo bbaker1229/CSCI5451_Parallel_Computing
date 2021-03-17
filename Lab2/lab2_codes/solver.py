@@ -7,8 +7,8 @@ import os
 if __name__ == "__main__":
 
     nproc = len(os.listdir('OUT/'))
-    print(nproc)
     nsamples = 1021
+    current_samples = 0
 
     nfeat = -1
     nc = -1
@@ -28,6 +28,7 @@ if __name__ == "__main__":
         f.readline()
         params = f.readline().split()
         myloc = int(params[3])
+        current_samples += myloc
         if p_id == 0:
 
             nc = int(params[1][:-1])
@@ -56,12 +57,17 @@ if __name__ == "__main__":
 
         f.close()
 
+        if (current_samples == nsamples):
+            break
+
 
 
     for i in range(nc):
         cluster_data = fdata[clustId == i]
+        if (cluster_data.shape[0] == 0):
+            print('Error: One of your clusters has no elements')
+            sys.exit(0)
         centers[i] = np.mean(cluster_data, axis=0)
-
 
     tol = 1e-10
     n_init=1

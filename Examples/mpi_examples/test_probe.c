@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     }
   } else{
 //--------------------Probe for an incoming message from process zero
-    MPI_probe(0, 0, MPI_COMM_WORLD, &status);
+    MPI_Probe(0, 0, MPI_COMM_WORLD, &status);
 //--------------------When probe returns, 'status' contains size + other
 //                    info on incoming message. Get message size
     MPI_Get_count(&status, MPI_DOUBLE, &ncount);

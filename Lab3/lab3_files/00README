@@ -1,0 +1,48 @@
+
+Notes on Lab3:
+
+This code is  complete (and will run)  but has a dummy  `OneStep' function which
+just does a copy  instead of a real step. You will need  to develop your version
+of OneStep. Details on Cartesian topology will be given in class.
+
+USAGE
+
+mpirun -np ptot  test.ex  qi
+
+where qi divides ptot
+
+e.g.
+
+ mpirun -np  4  test.ex 2
+
+ will run on a 2x2 processor grid
+
+
+=======================================================================
+
+DOMAINS: 
+
+See the include file inc.h for the  definition of a `domain' (the local grid) it
+contains information  about sizes, who the  neighbors are, and some  buffers for
+exchanging what is known as `ghost-cells'
+
+=======================================================================
+
+NOTATION
+
+ mat[i][j] corresponds to [x_i, y_j] but usage of coordinates x, y is
+ avoided. Instead we use i (row) and j (columns):
+ 
+  <-----j----->             
+  x x x x x x x         
+  x x x x x x x  ^      
+  x x x x x x x  |      
+  x x x x x x x  i       
+  x x x x x x x  |       
+  x x x x x x x  v
+  x x x x x x x     
+
+see loc.png for a local representation the data.
+
+=======================================================================
+

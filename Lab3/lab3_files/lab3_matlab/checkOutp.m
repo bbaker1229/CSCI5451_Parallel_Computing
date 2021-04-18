@@ -13,4 +13,4 @@ pall = [p11, p12; p21 p22];
 t1 = sum(sum(pall))
 %%-------------------- plot
 surf(pall) 
-
+axis tight

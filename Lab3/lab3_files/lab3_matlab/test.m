@@ -27,6 +27,8 @@ uu = reshape(u,ni,nj);
 %%-------------------- Need to transpose!
 uu = uu';
 
-surf(uu)
+csvwrite('data.txt', uu);
 
+surf(uu)
+axis tight
  

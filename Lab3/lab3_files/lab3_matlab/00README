@@ -1,0 +1,8 @@
+
+
+test.m will get the probability vector under the exact same conditions
+and do a surface plot  -
+
+checkOutp.m will read the output the data for the case of a 2x2 grid and
+get the same plot.. the two should be identical.
+

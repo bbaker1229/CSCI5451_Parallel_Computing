@@ -55,6 +55,7 @@ int normliz(double** x, int ni, int nj, MPI_Comm comm2D){
   return 0;
 }
 
+
 void get_prob(int i, int j, int ni, int nj, int pi, int pj,
 		 int *dims, double *prob) {
 /* get probability stencil */
@@ -73,7 +74,7 @@ void get_prob(int i, int j, int ni, int nj, int pi, int pj,
   /*-------------------- global matrix dimensions */
   niT = dims[0]*ni;
   njT = dims[1]*nj;  
-  // T1: pl = .15  pr = .3   == all multiplied by .5 times fun. of i,j
+  // T1: pl = .15  pr = .3   == all multiplied by .25 times fun. of i,j
   // T2  p = p = .2
   te = 0.25* 0.30 * (double)(njT - jj+1)/ (double) njT;
   tw = 0.25* 0.15 * (double)(njT + jj-1)/ (double) njT;
@@ -82,8 +83,7 @@ void get_prob(int i, int j, int ni, int nj, int pi, int pj,
   /*-------------------- save trans. probabilities */
   prob[1] = tw;      // west
   prob[2] = te;      // east
-  prob[3] = ts;      // south
-  prob[4] = tn;      // north 
+  prob[3] = tn;      // north 
+  prob[4] = ts;      // south
   prob[0] = 1.0 - (te+tw+tn+ts);
 }
-

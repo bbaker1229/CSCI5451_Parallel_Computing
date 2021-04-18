@@ -1,5 +1,4 @@
 #include <mpi.h>
-#include <math.h> 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -19,7 +18,7 @@ void get_prob (int i, int j, int ni, int nj, int qi, int qj, int *dims,
 
 int main (int argc, char **argv){
  int ni, nj, westNB, eastNB, northNB, southNB;
- int myid, procs, itmax=300  ;
+ int myid, procs, itmax=500 ;
  DomainPtr Dom; 
  MPI_Comm comm2D;
 /*-------------------- main matrix : stores local probabs + matrix itself. */
@@ -98,11 +97,11 @@ int main (int argc, char **argv){
  coords[1]=qj+1; 
  MPI_Cart_rank(comm2D,coords,&eastNB);
 /*-------------------- rank of the south neighbor of the node*/
- coords[0]=qi-1;
+ coords[0]=qi+1;
  coords[1]=qj; 
  MPI_Cart_rank(comm2D,coords,&southNB);
 /*-------------------- rank of the north neighbor of the node*/
- coords[0]=qi+1;
+ coords[0]=qi-1;
  coords[1]=qj; 
  MPI_Cart_rank(comm2D,coords,&northNB);
  /*-------------------- create Domain Dom */
@@ -126,7 +125,7 @@ int main (int argc, char **argv){
  myMatrix=(PointProb**)malloc(sizeof(PointProb*)*ni);  
  Pij=(double**)malloc(sizeof(double*)*ni);  
  old_Pij=(double**)malloc(sizeof(double*)*ni);
- /*-------------------- allocate for each row */
+/*-------------------- allocate for each row */
  for(i=0;i<ni;i++) {
    myMatrix[i]=(PointProb*)malloc(sizeof(PointProb)*nj);
    Pij[i] = (double*) malloc(sizeof(double)*nj);
@@ -142,34 +141,30 @@ int main (int argc, char **argv){
  }
 /*---------------------------------------------------------------------*/
 /*-------------------- set initial probability */
- if (qi == 0 && qj == 0) {
+ if (qi == 0 && qj == 0) 
    old_Pij[0][0] = 1.0; 
-   Pij[0][0] = 1.0;
- }
 /*-------------------- all info has been set now */
  for (it = 0; it < itmax; it++) {
 /*-------------------- Do one iteration  */
    OneStep (myMatrix, Pij, old_Pij, Dom, comm2D);
-   
+/*-------------------- this is optional - can scale at end */
    normliz(Pij, ni, nj, comm2D);
-/*-------------------- check convergence */   
-   if (ComputErr(Pij, old_Pij, ni, nj, comm2D) < 0.0001)
+/*-------------------- check convergence at least 8 digits or so*/   
+   if (ComputErr(Pij, old_Pij, ni, nj, comm2D) < 1.e-09)
      break;
 /*------------------ else copy and repeat */
    for(i=0; i<ni; i++) 
      for (j=0;j<nj;j++)
        old_Pij[i][j] = Pij[i][j]; 
  }
- // debug remo
- // fprintf(fo," (qi, qj) (%d %d ) -- myid %d\n",qi,qj,myid);
- 
+/*-------------------- Write data to files */
  for(i=0; i<ni; i++) {
    for (j=0;j<nj;j++)
      fprintf(fo,"%e ",Pij[i][j]) ;
    fprintf(fo,"\n"); 
  }
 
- /*-------------------- free arrays */
+/*-------------------- free arrays */
  for (i=0; i< ni; i++){
    free (myMatrix[i]);
    free (Pij[i]);

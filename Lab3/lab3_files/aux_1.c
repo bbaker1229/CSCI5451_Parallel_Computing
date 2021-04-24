@@ -10,7 +10,8 @@ void OneStep (PointProb** myMatrix, double** Pij, double** old_Pij,
 /*-------------------- Does one iteration */
   int i,j;
   MPI_Status status;
-  int ni =Dom->ni, nj=Dom->nj;
+  MPI_Request request;
+  int ni =Dom->ni, nj=Dom->nj, cnt = 0;
   double *sendNS, *sendEW;
   sendNS = (double*) malloc(sizeof(double)*nj);
   sendEW = (double*) malloc(sizeof(double)*ni);
@@ -53,53 +54,31 @@ void OneStep (PointProb** myMatrix, double** Pij, double** old_Pij,
     }
   }
 
-  //Send the ghost vectors back and add them to their new vectors
-  if(Dom->qj % 2) { //if odd j rank - recv east vectors
-    MPI_Send(Dom->west, ni, MPI_DOUBLE, Dom->westNB, 0, comm2D);
-    MPI_Recv(sendEW, ni, MPI_DOUBLE, Dom->eastNB, 1, comm2D, &status);
-    for(i=0;i<ni;i++)
-      Pij[i][nj-1] += sendEW[i];
-  } else {
-    MPI_Recv(sendEW, ni, MPI_DOUBLE, Dom->eastNB, 0, comm2D, &status);
-    for(i=0; i<ni; i++)
-      Pij[i][nj-1] += sendEW[i];
-    MPI_Send(Dom->west, ni, MPI_DOUBLE, Dom->westNB, 1, comm2D);
-  }
-
-  if(Dom->qj % 2) { //if odd j rank - recv west vectors
-    MPI_Send(Dom->east, ni, MPI_DOUBLE, Dom->eastNB, 0, comm2D);
-    MPI_Recv(sendEW, ni, MPI_DOUBLE, Dom->westNB, 1, comm2D, &status);
-    for(i=0;i<ni;i++)
-      Pij[i][0] += sendEW[i];
-  } else {
-    MPI_Recv(sendEW, ni, MPI_DOUBLE, Dom->westNB, 0, comm2D, &status);
-    for(i=0; i<ni; i++)
-      Pij[i][0] += sendEW[i];
-    MPI_Send(Dom->east, ni, MPI_DOUBLE, Dom->eastNB, 1, comm2D);
-  }
-
-  if(Dom->qi % 2) { //if odd i rank - recv south vectors
-    MPI_Send(Dom->north, nj, MPI_DOUBLE, Dom->northNB, 0, comm2D);
-    MPI_Recv(sendNS, nj, MPI_DOUBLE, Dom->southNB, 1, comm2D, &status);
-    for(j=0;j<nj;j++)
-      Pij[ni-1][j] += sendNS[j];
-  } else {
-    MPI_Recv(sendNS, nj, MPI_DOUBLE, Dom->southNB, 0, comm2D, &status);
-    for(j=0; j<nj; j++)
-      Pij[ni-1][j] += sendNS[j];
-    MPI_Send(Dom->north, nj, MPI_DOUBLE, Dom->northNB, 1, comm2D);
-  }
-
-  if(Dom->qi % 2) { //if odd i rank - recv north vectors
-    MPI_Send(Dom->south, nj, MPI_DOUBLE, Dom->southNB, 0, comm2D);
-    MPI_Recv(sendNS, nj, MPI_DOUBLE, Dom->northNB, 1, comm2D, &status);
-    for(j=0;j<nj;j++)
-      Pij[0][j] += sendNS[j];
-  } else {
-    MPI_Recv(sendNS, nj, MPI_DOUBLE, Dom->northNB, 0, comm2D, &status);
-    for(j=0; j<nj; j++)
-      Pij[0][j] += sendNS[j];
-    MPI_Send(Dom->south, nj, MPI_DOUBLE, Dom->southNB, 1, comm2D);
+  // Send and apply ghost vectors
+  MPI_Isend(Dom->west, ni, MPI_DOUBLE, Dom->westNB, 0, comm2D, &request);
+  MPI_Isend(Dom->east, ni, MPI_DOUBLE, Dom->eastNB, 1, comm2D, &request);
+  MPI_Isend(Dom->north, nj, MPI_DOUBLE, Dom->northNB, 2, comm2D, &request);
+  MPI_Isend(Dom->south, nj, MPI_DOUBLE, Dom->southNB, 3, comm2D, &request);
+  while(cnt < 4) {
+    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, comm2D, &status);
+    if(status.MPI_TAG < 2)
+      MPI_Recv(sendEW, ni, MPI_DOUBLE, status.MPI_SOURCE, status.MPI_TAG, comm2D, &status);
+    else
+      MPI_Recv(sendNS, nj, MPI_DOUBLE, status.MPI_SOURCE, status.MPI_TAG, comm2D, &status);
+    if(status.MPI_TAG == 1){
+      for(i=0;i<ni;i++)
+        Pij[i][0] += sendEW[i];
+    } else if(status.MPI_TAG == 0){
+      for(i=0;i<ni;i++)
+        Pij[i][nj-1] += sendEW[i];
+    } else if(status.MPI_TAG == 3){
+      for(j=0;j<nj;j++)
+        Pij[0][j] += sendNS[j];
+    } else {
+      for(j=0;j<nj;j++)
+        Pij[ni-1][j] += sendNS[j];
+    }
+    cnt++;
   }
 }
 

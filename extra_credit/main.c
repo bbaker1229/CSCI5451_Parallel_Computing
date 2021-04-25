@@ -90,6 +90,7 @@ int main (int argc, char **argv){
  // Print results
  printf(" (i, j) (%d %d ) == myid %d: ai = %d, bj = %d, value == %d\n", i, j, myid, (int)ai, (int)bj, (int)(ai*bj));
 
+ MPI_Barrier(MPI_COMM_WORLD);
  MPI_Finalize();
  return(0);
 }   

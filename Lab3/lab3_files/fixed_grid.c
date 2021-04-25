@@ -81,8 +81,8 @@ int main (int argc, char **argv){
    exit(1);
  }
 /*-------------------- hard-wired dimensions of mesh */
- ni =  200;
- nj =  200;
+ ni =  2000;
+ nj =  2000;
 /*-------------------- output files. Need to be different for each PE */
  strcpy(str2,"OUT/out_");
  sprintf(str1,"%d",myid);
